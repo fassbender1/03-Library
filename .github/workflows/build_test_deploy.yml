@@ -1,32 +1,54 @@
-# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
-# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
 
 name: Build, Test and Deploy Library
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js 24
-      uses: actions/setup-node@v4
-      with:
-        node-version: 24
-        cache: 'npm'
-    - name: Install NPM Dependencies
-      run: npm install
-    - name: Start Backend
-      run: npm run start-be
-    - name: Start FrontEnd
-      run: npm run start-fe
-    - name: Install Playwright Browsers
-      run: npx playwright install
-    - name: Run the UI tests
-      run: npm run test 
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'npm'
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Start Backend
+        run: |
+          npm run start-be > /tmp/library-backend.log 2>&1 &
+          echo $! > /tmp/library-backend.pid
+
+      - name: Start FrontEnd
+        run: |
+          npm run start-fe > /tmp/library-frontend.log 2>&1 &
+          echo $! > /tmp/library-frontend.pid
+
+      - name: Wait for Servers
+        run: |
+          npx wait-on --timeout 60000 \
+            http://127.0.0.1:3030 \
+            http://127.0.0.1:3000
+
+      - name: Run the UI tests
+        run: npm run test
+
+      - name: Upload Playwright Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          if-no-files-found: ignore
