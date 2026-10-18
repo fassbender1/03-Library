@@ -1,7 +1,7 @@
 import * as api from './api.js';
 
-const host = 'https://zero3-library-frontend-6g29.onrender.com'
-api.settings.host = 'https://zero3-library-frontend-6g29.onrender.com';
+const host = 'https://zero3-library-backend-bpzc.onrender.com'
+api.settings.host = 'https://zero3-library-backend-bpzc.onrender.com';
 
 export const login = api.login;
 export const register = api.register;
