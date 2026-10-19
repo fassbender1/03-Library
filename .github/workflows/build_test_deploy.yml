@@ -49,3 +49,25 @@ jobs:
           name: playwright-report
           path: playwright-report/
           if-no-files-found: ignore
+
+  deploy_backend_to_render:
+    needs: build
+    if : github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: JorgeLNJunior/render-deploy@v1.5.0
+      with:
+        service_id: ${{ secrets.SERVICE_BACKEND_ID }}
+        api_key: ${{ secrets.MY_RENDER_API_KEY }}
+        ait_deploy: true
+
+  deploy_frontend_to_render:
+    needs: deploy_backend_to_render
+    if : github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+    - uses: JorgeLNJunior/render-deploy@v1.5.0
+      with:
+        service_id: ${{ secrets.SERVICE_FE_ID }}
+        api_key: ${{ secrets.MY_RENDER_API_KEY }}
+        ait_deploy: true
